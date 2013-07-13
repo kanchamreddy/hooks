@@ -12,9 +12,9 @@ echo "\nValidating JavaScript:\n"
 
 for file in ${files}; do
     lintErrors=$(jslint ${file} )
-    result=$lintErrors | $(grep "${file} is OK")
-    
-    if [ "$result" != "" ]; then
+    #result=$lintErrors | $( grep "${file} is OK")
+    if [[ "$lintErrors" =~ .*OK.* ]]
+    then
         echo "\t\033[32mJSLint Passed: ${file}\033[0m"
     else
         echo "\t\033[31mJSLint Failed: ${file}\033[0m"
