@@ -4,4 +4,7 @@ function test() {
 	if (someVar < 12) {
 		someVar = someVar + 1;
 	}
+	if (someVar < 13) {
+		someVar = someVar + 1;
+	}
 }
