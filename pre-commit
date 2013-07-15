@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "pre-commit started"
+$FINDBUGS_HOME="/Documents/jars/findbugs-2.0.2"
 files=$(git diff --cached --name-only --diff-filter=ACM | grep ".js$")
 if [ "$files" = "" ]; then 
     exit 0 
