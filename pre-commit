@@ -1,29 +1,66 @@
 #!/bin/sh
 
-$FINDBUGS_HOME="/Documents/jars/findbugs-2.0.2"
-files=$(git diff --cached --name-only --diff-filter=ACM | grep ".js$")
+echo "pre-commit started"
+files=$(git diff --cached --name-only --diff-filter=ACM)
+
+jsfiles=$(  grep ".js$" <<< "$files")
+javafiles=$(  grep ".java$" <<< "$files")
+#jsfiles=[[ $files == *.js* ]]
+#javafiles=[[ $files === *.java* ]]
+
+
 if [ "$files" = "" ]; then 
     exit 0 
 fi
 
 pass=true
 
-echo "\nValidating JavaScript:\n"
+#echo "\t\e[34mValidating JavaScript:\t\e[0m"
+echo "\n\033[46mValidating JavaScript:\033[0m\n"
 
-for file in ${files}; do
-    lintErrors=$(jslint ${file} )
+for jsfile in ${jsfiles}; do
+    lintErrors=$(jshint ${jsfile} )
     #result=$lintErrors | $( grep "${file} is OK")
-    if [[ "$lintErrors" =~ .*OK.* ]]
+    
+    if [ ${#lintErrors} -eq 0 ]
     then
-        echo "\t\033[32mJSLint Passed: ${file}\033[0m"
+        echo "\033[32mJSHint Passed: ${jsfile}\033[0m"
     else
-        echo "\t\033[31mJSLint Failed: ${file}\033[0m"
+        echo "\033[31mJSHint Failed: ${jsfile}\033[0m"
         echo "$lintErrors"
         pass=false
     fi
 done
 
-echo "\nJavaScript validation complete\n"
+echo "\n\033[46mJavaScript validation complete\033[0m\n"
+
+#set Findbugs Home
+FINDBUGS_JAR=~/Documents/jars/findbugs-2.0.2/lib/findbugs.jar
+class="class"
+echo "\n\033[45mValidating Java:\033[0m\n"
+CLIENT_BUILD_DIR=~/Desktop/TempDir/
+
+if [ ! -d "$CLIENT_BUILD_DIR" ]
+    then mkdir "$CLIENT_BUILD_DIR"
+fi
+for javafile in ${javafiles}; do
+    echo "\033[31m $javafile\033[0m"
+    $(javac $javafile -d $CLIENT_BUILD_DIR)
+    
+    javaErrors=$(java -jar "$FINDBUGS_JAR" "$CLIENT_BUILD_DIR"${javafile//java/$class})
+    
+    if [ ${#javaErrors} -gt 0 ]
+    then
+        echo "\033[31mFindbugs Failed: ${javafile}\033[0m"
+        echo "$javaErrors"
+        pass=false
+    else
+         echo "\033[32mFindbugs Passed: ${javafile}\033[0m"
+    fi
+    
+done
+rm -r "$CLIENT_BUILD_DIR"
+echo "\n\033[45mJava validation complete\033[0m\n"
 
 #grep '^Signed-off: '  >/dev/null || {
 #       echo "The commit message must have a Signed-off-by line."
@@ -31,7 +68,7 @@ echo "\nJavaScript validation complete\n"
 #}
 
 if ! $pass; then
-    echo "\033[41mCOMMIT FAILED:\033[0m Your commit contains files that should pass JSLint but do not. Please fix the JSLint errors and try again.\n"
+    echo "\033[41mCOMMIT FAILED:\033[0m Your commit contains files that should pass JSLint & Findbugs but do not. Please fix the errors and try again.\n"
     exit 1
 else
     echo "\033[42mCOMMIT SUCCEEDED\033[0m\n"
