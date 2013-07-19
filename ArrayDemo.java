@@ -6,7 +6,8 @@ public class ArrayDemo {
      
 	 String aString = "bob";
 	 String b="pop";
-     //b.replace('b', 'p');
+     b.replace('b', 'p');
+     /*Testing Smart git */
      if(b.equals("pop")){
         System.out.println("true");
 	 }
